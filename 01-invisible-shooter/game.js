@@ -7,6 +7,12 @@ var previousTime = 0,
     scoreManager,
     LEFT = 37, UP = 38, RIGHT = 39, DOWN = 40, FIRE = 16;
 
+var sfx = {
+    fire: new Audio("sound/missile.wav"),
+    enemyHit: new Audio("sound/hit.wav"),
+    avatarHit: new Audio("sound/hurt.wav")
+};
+
 window.onload = function(){
     var canvas = document.getElementById("game"),
         context = canvas.getContext("2d");
@@ -103,12 +109,14 @@ function resolveEnemyHitAvatar(enemy, avatar) {
     avatar.hitPoints--;
     avatar.x -= 40;
     console.log("OUCH!");
+    sfx.avatarHit.play();
 }
 
 function resolveBulletHitEnemy (bullet, enemy) {
     enemyManager.killEnemy(enemy);
     avatar.killBullet();
     scoreManager.incrementScore();
+    sfx.enemyHit.play();
 }
 
 
@@ -167,6 +175,7 @@ function Avatar() {
         this.bullet = new Bullet();
         this.bullet.x = this.x + this.size;
         this.bullet.y = this.y + this.size / 2;
+        sfx.fire.play();
     };
 
     this.killBullet = function () {

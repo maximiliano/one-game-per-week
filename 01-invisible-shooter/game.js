@@ -113,12 +113,13 @@ function GameplayState (game) {
     var avatar = new Avatar();
     var enemyManager = new EnemyManager();
     var scoreManager = new ScoreManager();
+    var hitsManager = new HitsManager(avatar);
 
     this.update = function (timeElapsed, currentTime) {
         enemyManager.update(timeElapsed, currentTime);
 
         // quit game on ESC
-        if (key.isPressed(RESET)) {
+        if (key.isPressed(RESET) || avatar.hitPoints <= 0) {
             this.game.reset();
         }
 
@@ -142,9 +143,7 @@ function GameplayState (game) {
             avatar.spawnBullet();
         }
 
-        // constrain avatar to bounds of screen.
-        avatar.x = Math.max(0, Math.min(avatar.x, WIDTH - avatar.size));
-        avatar.y = Math.max(0, Math.min(avatar.y, HEIGHT - avatar.size));
+        avatar.update(timeElapsed, currentTime);
 
         var bullet = avatar.bullet;
         if (bullet) {
@@ -165,12 +164,13 @@ function GameplayState (game) {
 
         enemyManager.draw(canvas, timeElapsed, currentTime);
         scoreManager.draw(canvas, timeElapsed, currentTime);
+        hitsManager.draw(canvas, timeElapsed, currentTime);
 
         if (bullet) {
             bullet.draw(context);
         }
 
-        avatar.draw(context);
+        avatar.draw(canvas, timeElapsed, currentTime);
     };
 
     this.detectCollisions = function () {
@@ -227,7 +227,14 @@ function Avatar() {
     this.size = 50;
     this.color = "#9900FF";
 
-    this.draw = function (context) {
+    this.update = function (timeElapsed, currentTime) {
+        // constrain avatar to bounds of screen.
+        this.x = Math.max(0, Math.min(this.x, WIDTH - this.size));
+        this.y = Math.max(0, Math.min(this.y, HEIGHT - this.size));
+    };
+
+    this.draw = function (canvas, timeElapsed, currentTime) {
+        var context = canvas.getContext("2d");
         context.beginPath();
         context.rect(this.x, this.y, this.size, this.size);
         context.fillStyle = this.color;
@@ -347,7 +354,7 @@ function EnemyManager () {
 function ScoreManager() {
     this.score = 0;
 
-    this.x = WIDTH / 2;
+    this.x = (WIDTH / 8) * 5;
     this.y = 40;
 
     this.incrementScore = function () {
@@ -360,9 +367,25 @@ function ScoreManager() {
 
     this.draw = function (canvas, timeElapsed, currentTime) {
         var context = canvas.getContext("2d"),
-            text = this.score;
+            text = "Points: " + this.score;
 
+        context.textAlign = "left";
         context.font = "32px Arial";
+        context.fillStyle = "white";
+        context.fillText(text, this.x, this.y);
+    };
+}
+
+function HitsManager (avatar) {
+    this.x = (WIDTH / 8) * 2;
+    this.y = 40;
+
+    this.draw = function (canvas, timeElapsed, currentTime) {
+        var context = canvas.getContext("2d"),
+            text = "Lives: " + avatar.hitPoints;
+
+        context.textAlign = "left";
+        context.font= "32px Arial";
         context.fillStyle = "white";
         context.fillText(text, this.x, this.y);
     };

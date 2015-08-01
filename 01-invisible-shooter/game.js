@@ -1,11 +1,9 @@
-var previousTime = 0,
-    INTERVAL = 30,
-    WIDTH = 800,
+var WIDTH = 800,
     HEIGHT = 400,
     avatar,
     enemyManager,
     scoreManager,
-    LEFT = 37, UP = 38, RIGHT = 39, DOWN = 40, FIRE = 16;
+    LEFT = 37, UP = 38, RIGHT = 39, DOWN = 40, FIRE = 16, RESET = 27;
 
 var sfx = {
     fire: new Audio("sound/missile.wav"),
@@ -13,136 +11,202 @@ var sfx = {
     avatarHit: new Audio("sound/hurt.wav")
 };
 
-window.onload = function(){
-    var canvas = document.getElementById("game"),
-        context = canvas.getContext("2d");
 
-    avatar = new Avatar();
-    enemyManager = new EnemyManager();
-    scoreManager = new ScoreManager();
+var Game = function (canvas) {
+    var that = this,
+        INTERVAL = 30,
+        timer = -1,
+        previousTime = 0;
 
-    // Main Loop
-    setInterval(
-        function () {
-            var currentTime = new Date().getTime(),
-                timeElapsed;
+    this.currentState = null;
+    this.introState = null;
+    this.gameplayState = null;
 
-            if (previousTime === 0) {
-                previousTime = currentTime;
-            }
+    this.onFrame = function () {
+        var currentTime = new Date().getTime(),
+            timeElapsed;
 
-            timeElapsed = currentTime - previousTime;
-
-            update(timeElapsed, currentTime);
-            draw(canvas, timeElapsed, currentTime);
-
+        if (previousTime === 0) {
             previousTime = currentTime;
-        }, INTERVAL);
+        }
+
+        timeElapsed = currentTime - previousTime;
+
+        that.clearCanvas(canvas);
+        // Only update the currentState.
+        that.currentState.update (timeElapsed, currentTime);
+        that.currentState.draw (canvas, timeElapsed, currentTime);
+
+        previousTime = currentTime;
+    };
+
+    this.init = function () {
+        timer = setInterval( that.onFrame, INTERVAL );
+        that.reset();
+    };
+
+    this.startGame = function () {
+        that.clearCanvas();
+        that.gameplayState = new GameplayState(that);
+        that.currentState = that.gameplayState;
+        that.introState = null;
+    };
+
+    this.reset = function () {
+        that.clearCanvas();
+        that.introState = new IntroState(that);
+        that.currentState = that.introState;
+        that.gameplayState = null;
+    };
+
+    this.clearCanvas = function () {
+        var context = canvas.getContext("2d");
+        context.beginPath();
+        context.rect(0, 0, WIDTH, HEIGHT);
+        context.fillStyle = "#CCCC99";
+        context.fill();
+    };
 };
 
-function update(timeElapsed, currentTime) {
-    enemyManager.update(timeElapsed, currentTime);
 
-    if (key.isPressed(RIGHT)) {
-        avatar.x += avatar.vx;
-    }
+function IntroState (game) {
+    var that = this;
+    this.game = game;
 
-    if (key.isPressed(LEFT)) {
-        avatar.x -= avatar.vx;
-    }
+    var img = new Image();
+    img.src = "img/title.png";
 
-    if (key.isPressed(UP)) {
-        avatar.y -= avatar.vy;
-    }
+    var waitTime = 200;
 
-    if (key.isPressed(DOWN)) {
-        avatar.y += avatar.vy;
-    }
+    // startTime thing prevents accidentally starting the game again.
+    var startTime = 0;
 
-    if (key.isPressed(FIRE) && avatar.canFire()) {
-        avatar.spawnBullet();
-    }
-
-    // Constrain avatar to bounds of screen.
-    avatar.x = Math.max(0, Math.min(avatar.x, WIDTH - avatar.size));
-    avatar.y = Math.max(0, Math.min(avatar.y, HEIGHT - avatar.size));
-
-    var bullet = avatar.bullet;
-    if (bullet) {
-        bullet.vx += bullet.ax;
-        bullet.x += bullet.vx;
-
-        if (bullet.x > WIDTH) {
-            avatar.killBullet();
+    this.update = function (timeElapsed, currentTime) {
+        if (startTime === 0) {
+            startTime = currentTime;
         }
-    }
 
-    detectCollisions();
+        var runningTime = currentTime - startTime;
+
+        if (runningTime > waitTime &&
+            key.getPressedKeyCodes().length >= 1) {
+            this.game.startGame();
+        }
+    };
+
+    this.draw = function (canvas, timeElapsed, currentTime) {
+        var context = canvas.getContext("2d");
+        context.drawImage (img, 0, 0, WIDTH, HEIGHT);
+    };
 }
 
-function detectCollisions () {
-    for (var i = 0; i < enemyManager.enemies.length; i++) {
-        var enemy = enemyManager.enemies[i];
+function GameplayState (game) {
+    var that = this;
 
-        if (! enemy) {
-            continue;
+    this.game = game;
+
+    var avatar = new Avatar();
+    var enemyManager = new EnemyManager();
+    var scoreManager = new ScoreManager();
+
+    this.update = function (timeElapsed, currentTime) {
+        enemyManager.update(timeElapsed, currentTime);
+
+        // quit game on ESC
+        if (key.isPressed(RESET)) {
+            this.game.reset();
         }
 
-        if (
-            (avatar.x + avatar.size > enemy.x && avatar.x < enemy.x + enemy.size) &&
-            (avatar.y + avatar.size > enemy.y && avatar.y < enemy.y + enemy.size)
-           ) {
-            resolveEnemyHitAvatar(enemy, avatar);
+        if (key.isPressed(RIGHT)) {
+            avatar.x += avatar.vx;
         }
+
+        if (key.isPressed(LEFT)) {
+            avatar.x -= avatar.vx;
+        }
+
+        if (key.isPressed(UP)) {
+            avatar.y -= avatar.vy;
+        }
+
+        if (key.isPressed(DOWN)) {
+            avatar.y += avatar.vy;
+        }
+
+        if (key.isPressed(FIRE) && avatar.canFire()) {
+            avatar.spawnBullet();
+        }
+
+        // constrain avatar to bounds of screen.
+        avatar.x = Math.max(0, Math.min(avatar.x, WIDTH - avatar.size));
+        avatar.y = Math.max(0, Math.min(avatar.y, HEIGHT - avatar.size));
 
         var bullet = avatar.bullet;
-        if (bullet &&
-            (bullet.x + bullet.size > enemy.x && bullet.x < enemy.x + enemy.size) &&
-            (bullet.y + bullet.size > enemy.y && bullet.y < enemy.y + enemy.size)) {
-            resolveBulletHitEnemy(bullet, enemy);
+        if (bullet) {
+            bullet.vx += bullet.ax;
+            bullet.x += bullet.vx;
+
+            if (bullet.x > WIDTH) {
+                avatar.killBullet();
+            }
         }
-    }
+
+        that.detectCollisions();
+    };
+
+    this.draw = function (canvas, timeElapsed, currentTime) {
+        var context = canvas.getContext("2d");
+            bullet = avatar.bullet;
+
+        enemyManager.draw(canvas, timeElapsed, currentTime);
+        scoreManager.draw(canvas, timeElapsed, currentTime);
+
+        if (bullet) {
+            bullet.draw(context);
+        }
+
+        avatar.draw(context);
+    };
+
+    this.detectCollisions = function () {
+        for (var i = 0; i < enemyManager.enemies.length; i++) {
+            var enemy = enemyManager.enemies[i];
+
+            if (! enemy) {
+                continue;
+            }
+
+            if (
+                (avatar.x + avatar.size > enemy.x && avatar.x < enemy.x + enemy.size) &&
+                (avatar.y + avatar.size > enemy.y && avatar.y < enemy.y + enemy.size)
+               ) {
+                that.resolveEnemyHitAvatar(enemy, avatar);
+            }
+
+            var bullet = avatar.bullet;
+            if (bullet &&
+                (bullet.x + bullet.size > enemy.x && bullet.x < enemy.x + enemy.size) &&
+                (bullet.y + bullet.size > enemy.y && bullet.y < enemy.y + enemy.size)) {
+                that.resolveBulletHitEnemy(bullet, enemy);
+            }
+        }
+    };
+
+    this.resolveEnemyHitAvatar = function (enemy, avatar) {
+        enemyManager.killEnemy(enemy);
+        avatar.hitPoints--;
+        avatar.x -= 40;
+        console.log("OUCH!");
+        sfx.avatarHit.play();
+    };
+
+    this.resolveBulletHitEnemy = function (bullet, enemy) {
+        enemyManager.killEnemy(enemy);
+        avatar.killBullet();
+        scoreManager.incrementScore();
+        sfx.enemyHit.play();
+    };
 }
-
-function resolveEnemyHitAvatar(enemy, avatar) {
-    enemyManager.killEnemy(enemy);
-    avatar.hitPoints--;
-    avatar.x -= 40;
-    console.log("OUCH!");
-    sfx.avatarHit.play();
-}
-
-function resolveBulletHitEnemy (bullet, enemy) {
-    enemyManager.killEnemy(enemy);
-    avatar.killBullet();
-    scoreManager.incrementScore();
-    sfx.enemyHit.play();
-}
-
-
-function draw(canvas, timeElapsed, currentTime) {
-    var context = canvas.getContext("2d");
-        bullet = avatar.bullet;
-    clearCanvas(canvas);
-
-    enemyManager.draw(canvas, timeElapsed, currentTime);
-    scoreManager.draw(canvas, timeElapsed, currentTime);
-
-    if (bullet) {
-        bullet.draw(context);
-    }
-
-    avatar.draw(context);
-}
-
-function clearCanvas(canvas) {
-    var context = canvas.getContext("2d");
-    context.beginPath();
-    context.rect(0, 0, WIDTH, HEIGHT);
-    context.fillStyle = "#CCCC99";
-    context.fill();
-}
-
 
 function Avatar() {
     // Position
@@ -298,3 +362,10 @@ function ScoreManager() {
         context.fillText(text, this.x, this.y);
     };
 }
+
+window.onload = function(){
+    var canvas = document.getElementById("game");
+
+    var game = new Game(canvas);
+    game.init();
+};

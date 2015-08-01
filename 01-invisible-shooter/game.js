@@ -73,9 +73,6 @@ function IntroState (game) {
     var that = this;
     this.game = game;
 
-    var img = new Image();
-    img.src = "img/title.png";
-
     var waitTime = 200;
 
     // startTime thing prevents accidentally starting the game again.
@@ -96,7 +93,15 @@ function IntroState (game) {
 
     this.draw = function (canvas, timeElapsed, currentTime) {
         var context = canvas.getContext("2d");
-        context.drawImage (img, 0, 0, WIDTH, HEIGHT);
+        context.font = "bold 90px Courier New, Courier New, monospace";
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillStyle = "black";
+        context.fillText('Invisible', 400, HEIGHT / 4.5);
+        context.fillText('Shooter', 400, HEIGHT / 2.5);
+
+        context.font = "bold 32px Courier New, Courier New, monospace";
+        context.fillText('Press any key to start', 400, HEIGHT - (HEIGHT / 3));
     };
 }
 

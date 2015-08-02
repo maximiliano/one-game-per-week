@@ -200,8 +200,7 @@ function GameplayState (game) {
     this.resolveEnemyHitAvatar = function (enemy, avatar) {
         enemyManager.killEnemy(enemy);
         avatar.hitPoints--;
-        avatar.x -= 40;
-        console.log("OUCH!");
+        avatar.visible = true;
         sfx.avatarHit.play();
     };
 
@@ -215,8 +214,8 @@ function GameplayState (game) {
 
 function Avatar() {
     // Position
-    this.x = 0;
-    this.y = 0;
+    this.x = WIDTH / 20;
+    this.y = HEIGHT / 2;
 
     // Velocity
     this.vx = 10;
@@ -227,6 +226,9 @@ function Avatar() {
     this.size = 50;
     this.color = "#9900FF";
 
+    // Avatar appears when game starts
+    this.visible = true;
+
     this.update = function (timeElapsed, currentTime) {
         // constrain avatar to bounds of screen.
         this.x = Math.max(0, Math.min(this.x, WIDTH - this.size));
@@ -234,11 +236,15 @@ function Avatar() {
     };
 
     this.draw = function (canvas, timeElapsed, currentTime) {
-        var context = canvas.getContext("2d");
-        context.beginPath();
-        context.rect(this.x, this.y, this.size, this.size);
-        context.fillStyle = this.color;
-        context.fill();
+        // Avatar is invisible
+        if (this.visible === true) {
+            var context = canvas.getContext("2d");
+            context.beginPath();
+            context.rect(this.x, this.y, this.size, this.size);
+            context.fillStyle = this.color;
+            context.fill();
+            this.visible = false;
+        }
     };
 
     this.bullet = null;

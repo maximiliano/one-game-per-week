@@ -102,11 +102,16 @@ function IntroState (game) {
         context.textAlign = 'center';
         context.textBaseline = 'middle';
         context.fillStyle = "black";
-        context.fillText('Invisible', 400, HEIGHT / 4.5);
-        context.fillText('Shooter', 400, HEIGHT / 2.5);
+        context.fillText('Invisible', WIDTH / 2, HEIGHT / 4.5);
+        context.fillText('Shooter', WIDTH / 2, HEIGHT / 2.5);
 
         context.font = "bold 32px Courier New, Courier New, monospace";
-        context.fillText("Press 'enter' to start", 400, HEIGHT - (HEIGHT / 3));
+        context.fillText("Press 'enter' to start", WIDTH / 2, HEIGHT - (HEIGHT / 3));
+
+        context.textAlign = 'left';
+        context.font = "bold 20px Courier New, Courier New, monospace";
+        context.fillText("Press WASD or Arrow keys to move", WIDTH / 10, HEIGHT - (HEIGHT / 6));
+        context.fillText("Press 'space' or 'shift' to fire", WIDTH / 10, HEIGHT - (HEIGHT / 10));
     };
 }
 

@@ -164,7 +164,6 @@ function GameplayState (game) {
 
         var bullet = avatar.bullet;
         if (bullet) {
-            bullet.vx += bullet.ax;
             bullet.x += bullet.vx;
 
             if (bullet.x > WIDTH) {
@@ -287,8 +286,7 @@ function Bullet () {
     this.x = 0;
     this.y = 0;
 
-    this.vx = 0;
-    this.ax = 1;
+    this.vx = 15;
 
     this.size = 10;
     this.color = "#000000";

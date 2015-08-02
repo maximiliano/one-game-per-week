@@ -226,7 +226,7 @@ function Avatar() {
     this.vx = 10;
     this.vy = 10;
 
-    this.hitPoints = 10;
+    this.hitPoints = 5;
 
     this.size = 50;
     this.color = "#9900FF";

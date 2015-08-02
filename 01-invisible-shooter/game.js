@@ -3,7 +3,11 @@ var WIDTH = 800,
     avatar,
     enemyManager,
     scoreManager,
-    LEFT = 37, UP = 38, RIGHT = 39, DOWN = 40, FIRE = 16, RESET = 27;
+    A = 65, S = 83, D = 68, W = 87,
+    LEFT = 37, UP = 38, RIGHT = 39, DOWN = 40,
+    SHIFT = 16, SPACE = 32,
+    RESET = 27;
+
 
 var sfx = {
     fire: new Audio("sound/missile.wav"),
@@ -123,23 +127,23 @@ function GameplayState (game) {
             this.game.reset();
         }
 
-        if (key.isPressed(RIGHT)) {
+        if (key.isPressed(RIGHT) || key.isPressed(D)) {
             avatar.x += avatar.vx;
         }
 
-        if (key.isPressed(LEFT)) {
+        if (key.isPressed(LEFT) || key.isPressed(A)) {
             avatar.x -= avatar.vx;
         }
 
-        if (key.isPressed(UP)) {
+        if (key.isPressed(UP) || key.isPressed(W)) {
             avatar.y -= avatar.vy;
         }
 
-        if (key.isPressed(DOWN)) {
+        if (key.isPressed(DOWN) || key.isPressed(S)) {
             avatar.y += avatar.vy;
         }
 
-        if (key.isPressed(FIRE) && avatar.canFire()) {
+        if ((key.isPressed(SHIFT) || key.isPressed(SPACE)) && avatar.canFire()) {
             avatar.spawnBullet();
         }
 

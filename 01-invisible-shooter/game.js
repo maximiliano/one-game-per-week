@@ -6,7 +6,7 @@ var WIDTH = 800,
     A = 65, S = 83, D = 68, W = 87,
     LEFT = 37, UP = 38, RIGHT = 39, DOWN = 40,
     SHIFT = 16, SPACE = 32,
-    ENTER = 13, RESET = 27;
+    ENTER = 13, ESC = 27;
 
 
 var sfx = {
@@ -54,6 +54,15 @@ var Game = function (canvas) {
         that.gameplayState = new GameplayState(that);
         that.currentState = that.gameplayState;
         that.introState = null;
+        that.gameOverState = null;
+    };
+
+    this.endGame = function () {
+        that.clearCanvas();
+        that.gameplayState = null;
+        that.introState = null;
+        that.gameOverState = new GameOverState(that);
+        that.currentState = that.gameOverState;
     };
 
     this.reset = function () {
@@ -61,6 +70,7 @@ var Game = function (canvas) {
         that.introState = new IntroState(that);
         that.currentState = that.introState;
         that.gameplayState = null;
+        that.gameOverState = null;
     };
 
     this.clearCanvas = function () {
@@ -122,6 +132,37 @@ function IntroState (game) {
     };
 }
 
+function GameOverState (game) {
+    var that = this;
+    this.game = game;
+
+    this.update = function (timeElapsed, currentTime) {
+        if (key.isPressed(ESC)) {
+            this.game.reset();
+        }
+    };
+
+    this.draw = function (canvas, timeElapsed, currentTime) {
+        var context = canvas.getContext("2d");
+
+        var gradient = context.createLinearGradient(0, 0, 0, HEIGHT);
+        gradient.addColorStop(0, "black");
+        gradient.addColorStop(1, "white");
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, WIDTH, HEIGHT);
+
+        context.font = "bold 90px Courier New, Courier New, monospace";
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillStyle = "red";
+        context.fillText('Game', WIDTH / 2, HEIGHT / 4.5);
+        context.fillText('Over', WIDTH / 2, HEIGHT / 2.5);
+
+        context.font = "bold 32px Courier New, Courier New, monospace";
+        context.fillText("Press 'esc' to try again", WIDTH / 2, HEIGHT - (HEIGHT / 3));
+    };
+}
+
 function GameplayState (game) {
     var that = this;
 
@@ -136,8 +177,11 @@ function GameplayState (game) {
         enemyManager.update(timeElapsed, currentTime);
 
         // quit game on ESC
-        if (key.isPressed(RESET) || avatar.hitPoints <= 0) {
+        if (key.isPressed(ESC)) {
             this.game.reset();
+        }
+        if (avatar.hitPoints <= 0) {
+            this.game.endGame();
         }
 
         if (key.isPressed(RIGHT) || key.isPressed(D)) {

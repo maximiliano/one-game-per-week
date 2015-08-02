@@ -6,7 +6,7 @@ var WIDTH = 800,
     A = 65, S = 83, D = 68, W = 87,
     LEFT = 37, UP = 38, RIGHT = 39, DOWN = 40,
     SHIFT = 16, SPACE = 32,
-    RESET = 27;
+    ENTER = 13, RESET = 27;
 
 
 var sfx = {
@@ -69,6 +69,7 @@ var Game = function (canvas) {
         context.rect(0, 0, WIDTH, HEIGHT);
         context.fillStyle = "#CCCC99";
         context.fill();
+
     };
 };
 
@@ -90,7 +91,7 @@ function IntroState (game) {
         var runningTime = currentTime - startTime;
 
         if (runningTime > waitTime &&
-            key.getPressedKeyCodes().length >= 1) {
+            key.isPressed(SPACE) || key.isPressed(ENTER)) {
             this.game.startGame();
         }
     };
@@ -105,7 +106,7 @@ function IntroState (game) {
         context.fillText('Shooter', 400, HEIGHT / 2.5);
 
         context.font = "bold 32px Courier New, Courier New, monospace";
-        context.fillText('Press any key to start', 400, HEIGHT - (HEIGHT / 3));
+        context.fillText("Press 'enter' to start", 400, HEIGHT - (HEIGHT / 3));
     };
 }
 

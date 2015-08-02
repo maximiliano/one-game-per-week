@@ -98,6 +98,13 @@ function IntroState (game) {
 
     this.draw = function (canvas, timeElapsed, currentTime) {
         var context = canvas.getContext("2d");
+
+        var gradient = context.createLinearGradient(0, 0, 0, HEIGHT);
+        gradient.addColorStop(0, "#CCCC99");
+        gradient.addColorStop(1, "white");
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, WIDTH, HEIGHT);
+
         context.font = "bold 90px Courier New, Courier New, monospace";
         context.textAlign = 'center';
         context.textBaseline = 'middle';

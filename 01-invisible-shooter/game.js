@@ -442,7 +442,7 @@ function ScoreManager() {
     this.y = 40;
 
     this.incrementScore = function () {
-        this.score += 100;
+        this.score += 10;
     };
 
     this.resetScore = function () {

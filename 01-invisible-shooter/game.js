@@ -1,5 +1,4 @@
-var WIDTH = 800,
-    HEIGHT = 400,
+var WIDTH, HEIGHT,
     avatar,
     enemyManager,
     scoreManager,
@@ -475,8 +474,21 @@ function HitsManager (avatar) {
     };
 }
 
+
 window.onload = function(){
     var canvas = document.getElementById("game");
+
+    var viewportWidth = window.innerWidth;
+    var viewportHeight = window.innerHeight;
+
+    WIDTH = viewportWidth * 0.8;
+    HEIGHT = WIDTH / 2;
+
+    canvas.style.position = "absolute";
+    canvas.setAttribute("width", WIDTH);
+    canvas.setAttribute("height", HEIGHT);
+    canvas.style.top = (viewportHeight - HEIGHT) / 2 + "px";
+    canvas.style.left = (viewportWidth - WIDTH) / 2 + "px";
 
     var game = new Game(canvas);
     game.init();

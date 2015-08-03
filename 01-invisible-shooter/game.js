@@ -280,10 +280,21 @@ function GameplayState (game) {
     };
 
     this.resolveBulletHitEnemy = function (bullet, enemy) {
+        enemyManager.enemiesDestroyed += 1;
+        if ((enemyManager.enemiesDestroyed % 3) === 0) {
+            this.increaseDifficulty();
+        }
         enemyManager.killEnemy(enemy);
         avatar.killBullet();
         scoreManager.incrementScore();
         sfx.enemyHit.play();
+    };
+
+    this.increaseDifficulty = function () {
+        enemyManager.SPEED -= 1;
+        if (enemyManager.SPAWN_FREQUENCY > 200) {
+            enemyManager.SPAWN_FREQUENCY -= 50;
+        }
     };
 }
 
@@ -293,8 +304,8 @@ function Avatar() {
     this.y = HEIGHT / 2;
 
     // Velocity
-    this.vx = 10;
-    this.vy = 10;
+    this.vx = 20;
+    this.vy = 20;
 
     this.hitPoints = 5;
 
@@ -345,7 +356,7 @@ function Bullet () {
     this.x = 0;
     this.y = 0;
 
-    this.vx = 15;
+    this.vx = 20;
 
     this.size = 10;
     this.color = "#000000";
@@ -378,6 +389,7 @@ function Enemy (startTime) {
 
 function EnemyManager () {
     this.enemies = [];
+    this.enemiesDestroyed = 0;
     this.SPEED = -5;
     this.SPAWN_FREQUENCY = 800;
     this.spawnTimer = 0;

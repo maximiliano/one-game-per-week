@@ -79,7 +79,6 @@ var Game = function (canvas) {
         context.rect(0, 0, WIDTH, HEIGHT);
         context.fillStyle = "#CCCC99";
         context.fill();
-
     };
 };
 
@@ -143,6 +142,7 @@ function GameOverState (game) {
     };
 
     this.draw = function (canvas, timeElapsed, currentTime) {
+        var highscore = scoreManager.oldHighscore;
         var context = canvas.getContext("2d");
 
         var gradient = context.createLinearGradient(0, 0, 0, HEIGHT);
@@ -159,7 +159,17 @@ function GameOverState (game) {
         context.fillText('Over', WIDTH / 2, HEIGHT / 2.5);
 
         context.font = "bold 32px Courier New, Courier New, monospace";
-        context.fillText("Press 'esc' to try again", WIDTH / 2, HEIGHT - (HEIGHT / 3));
+        if (scoreManager.isHigherScore) {
+            context.fillStyle = "yellow";
+            context.fillText("NEW!!", WIDTH / 6, HEIGHT - (HEIGHT / 2.5));
+            highscore = scoreManager.score;
+        }
+        context.fillStyle = "red";
+        context.fillText("HIGHSCORE: " + highscore, WIDTH / 2, HEIGHT - (HEIGHT / 2.5));
+        context.fillText("SCORE: " + scoreManager.score, WIDTH / 2, HEIGHT - (HEIGHT / 3.5));
+
+        context.font = "25px Courier New, Courier New, monospace";
+        context.fillText("Press 'esc' to try again", WIDTH / 2, HEIGHT - (HEIGHT / 8));
     };
 }
 
@@ -170,8 +180,9 @@ function GameplayState (game) {
 
     var avatar = new Avatar();
     var enemyManager = new EnemyManager();
-    var scoreManager = new ScoreManager();
     var hitsManager = new HitsManager(avatar);
+    // Needs to be global
+    scoreManager = new ScoreManager();
 
     this.update = function (timeElapsed, currentTime) {
         enemyManager.update(timeElapsed, currentTime);
@@ -180,7 +191,12 @@ function GameplayState (game) {
         if (key.isPressed(ESC)) {
             this.game.reset();
         }
+
         if (avatar.hitPoints <= 0) {
+            if (scoreManager.score > scoreManager.oldHighscore) {
+                scoreManager.isHigherScore = true;
+                localStorage.invisible_shooter_highscore = scoreManager.score;
+            }
             this.game.endGame();
         }
 
@@ -417,6 +433,9 @@ function EnemyManager () {
 }
 
 function ScoreManager() {
+    this.isHigherScore = false;
+    this.oldHighscore = parseInt(localStorage.invisible_shooter_highscore, 10) || 0;
+
     this.score = 0;
 
     this.x = (WIDTH / 8) * 5;
